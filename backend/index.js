@@ -32,7 +32,7 @@ app.post('/upload', upload.single('video'), async (req, res) => {
 
     const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING);
     const containerClient = blobServiceClient.getContainerClient(CONTAINER_NAME);
-    
+
     // Generate unique blob name
     const blobName = `${Date.now()}-${req.file.originalname}`;
     const blockBlobClient = containerClient.getBlockBlobClient(blobName);
@@ -51,7 +51,6 @@ app.post('/upload', upload.single('video'), async (req, res) => {
   }
 });
 
-// Add a route to stream video from Azure Blob Storage with detailed logging
 app.get('/videos/:filename', async (req, res) => {
   const blobName = req.params.filename;
   console.log('--- Video Request Debug ---');
@@ -81,23 +80,16 @@ app.get('/videos/:filename', async (req, res) => {
 });
 
 //Audio
-app.post('/upload/audio', upload.single('audio'), async (req, res) => {
+app.post('/upload', upload.single('audio'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).send('No audio file uploaded.');
-
-    const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING);
-    const containerClient = blobServiceClient.getContainerClient(AUDIO_CONTAINER_NAME);
-    
-    const blobName = `${Date.now()}-${req.file.originalname}`;
-    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-
-    await blockBlobClient.uploadData(req.file.buffer, {
-      blobHTTPHeaders: { blobContentType: req.file.mimetype }
-    });
-
-    const blobUrl = blockBlobClient.url;
-    res.json({ url: blobUrl, filename: blobName });
+    // ... rest of your code
   } catch (err) {
+    if (err instanceof multer.MulterError) {
+      // Handle Multer errors specifically
+      console.error('Multer error:', err);
+      return res.status(400).send(`File upload error: ${err.message}`);
+    }
     console.error('Audio upload error:', err);
     res.status(500).send('Audio upload failed: ' + err.message);
   }
@@ -123,5 +115,5 @@ app.get('/audio/:filename', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`)); 
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
