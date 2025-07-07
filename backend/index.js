@@ -80,7 +80,7 @@ app.get('/videos/:filename', async (req, res) => {
 });
 
 //Audio
-app.post('/upload', upload.single('audio'), async (req, res) => {
+app.post('/upload/audio', upload.single('audio'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).send('No audio file uploaded.');
     // ... rest of your code
